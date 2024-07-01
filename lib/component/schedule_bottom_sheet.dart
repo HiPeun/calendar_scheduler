@@ -11,6 +11,12 @@ class ScheduleBottomSheet extends StatefulWidget {
 }
 
 class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
+  final GlobalKey<FormState> formKey = GlobalKey();
+  int? startTime;
+  int? endTime;
+  String? content;
+  String? category;
+
   //selectedColor 내가 선택한 컬러는 카테고리 컬러에서 첫번째 컬러(레드)에서 선택한다
   //그걸 String 값으로 전달하도록 한다.
 
@@ -27,6 +33,7 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
           child: Padding(
             padding: EdgeInsets.only(left: 8.0, right: 8.0, top: 16.0),
             child: Form(
+              key: formKey,
               child: Column(
                 children: [
                   _Time(
@@ -49,7 +56,9 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
                         });
                       }),
                   SizedBox(height: 8.0),
-                  _SaveButton()
+                  _SaveButton(
+                    onPressed: onSavePressed,
+                  )
                 ],
               ),
             ),
@@ -59,29 +68,44 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
     );
   }
 
+  void onStartTimeSaved(String? val) {
+    if (val == null) {
+      return;
+    }
 
-  void onStartTimeSaved(String? val){
-
+    startTime = int.parse(val);
   }
-  String? onStartTimeValidate(String? val){
 
+  String? onStartTimeValidate(String? val) {}
+
+  void onEndTimeSaved(String? val) {
+    if (val == null) {
+      return;
+    }
+    endTime = int.parse(val);
   }
-  void onEndTimeSaved(String? val){
 
+  String? onEndTimeValidate(String? val) {}
+
+  void onContentSaved(String? val) {
+    if (val == null) {
+      return;
+    }
+    content = val;
   }
-  String? onEndTimeValidate(String? val){
 
-  }
-  void onContentSaved(String? val){
+  String? onContentValidate(String? val) {}
 
-  }
-  String? onContentValidate(String? val){
-
+  void onSavePressed() {
+      formKey.currentState!.save();
+      
+      print("-=-----");
+      print(startTime);
+      print(endTime);
+      print(content);
+      print(category);
   }
 }
-
-
-
 
 //시간 클래스
 
@@ -133,8 +157,9 @@ class _Time extends StatelessWidget {
 //콘텐츠 클래스
 class _Content extends StatelessWidget {
   final FormFieldSetter<String> onSaved;
-  final FormFieldSetter<String> onValidate;
-  const _Content({required this.onSaved, required this.onValidate,super.key});
+  final FormFieldValidator<String> onValidate;
+
+  const _Content({required this.onSaved, required this.onValidate, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -198,7 +223,9 @@ class _Categories extends StatelessWidget {
 }
 
 class _SaveButton extends StatelessWidget {
-  const _SaveButton({super.key});
+  final VoidCallback onPressed;
+
+  const _SaveButton({required this.onPressed, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -206,7 +233,7 @@ class _SaveButton extends StatelessWidget {
       children: [
         Expanded(
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: onPressed,
             style: ElevatedButton.styleFrom(
                 backgroundColor: primaryColor, foregroundColor: Colors.white),
             child: Text("저장"),
