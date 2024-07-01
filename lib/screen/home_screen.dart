@@ -84,24 +84,33 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Padding(
                 padding:
                     const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0),
-                child: ListView(
-                  children: schedules.containsKey(selectedDay)
-                      ? schedules[selectedDay]!
-                          .map(
-                            (e) => ScheduleCard(
-                                color: Color(int.parse(
-                                  "FF${e.color}",
-                                  radix: 16,
-                                )),
-                                content: e.content,
-                                startTime: e.startTime,
-                                endTime: e.endTime),
-                          )
-                          .toList()
-                      : [],
+                child: ListView.separated(
+                  itemCount: schedules.containsKey(selectedDay)
+                      ? schedules[selectedDay]!.length
+                      : 0,
+                  itemBuilder: (BuildContext context, int index) {
+                    ///선택된 날짜에 해당되는 일정 리스트로 저장
+                    ///List<Schedule>
+                    final selectedSchedules = schedules[selectedDay]!;
+                    final scheduleModel = selectedSchedules[index];
+
+                    return ScheduleCard(
+                        color: Color(
+                          int.parse(
+                            "FF${scheduleModel.color}",
+                            radix: 16,
+                          ),
+                        ),
+                        content: scheduleModel.content,
+                        startTime: scheduleModel.startTime,
+                        endTime: scheduleModel.endTime);
+                  },
+                  separatorBuilder: (BuildContext contex, int index){
+                    return SizedBox(height: 16.0,);
+                  },
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
