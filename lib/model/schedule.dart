@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 
-class Schedule extends Table {
+class ScheduleTable extends Table {
   /// 1) 식별 가능한 ID
 
   IntColumn get id => integer().autoIncrement()();
