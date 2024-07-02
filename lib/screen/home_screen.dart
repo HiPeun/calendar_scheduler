@@ -65,18 +65,18 @@ class _HomeScreenState extends State<HomeScreen> {
             return;
           }
 
-
-          setState(() {
-            schedules = {
-              ...schedules,
-              schedule.date: [
-                if(schedules.containsKey(schedule.date))
-                  ...schedules[schedule.date]!,
-                schedule,
-              ]
-            };
-          });
-
+          setState(
+            () {
+              schedules = {
+                ...schedules,
+                schedule.date: [
+                  if (schedules.containsKey(schedule.date))
+                    ...schedules[schedule.date]!,
+                  schedule,
+                ]
+              };
+            },
+          );
         },
         backgroundColor: primaryColor,
         child: Icon(
