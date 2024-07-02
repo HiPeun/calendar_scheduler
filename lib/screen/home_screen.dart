@@ -54,13 +54,29 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showModalBottomSheet(
+        onPressed: () async {
+          final schedule = await showModalBottomSheet<Schedule>(
             context: context,
             builder: (_) {
-              return ScheduleBottomSheet();
+              return ScheduleBottomSheet(selectedDay: selectedDay);
             },
           );
+          if (schedule == null) {
+            return;
+          }
+
+
+          setState(() {
+            schedules = {
+              ...schedules,
+              schedule.date: [
+                if(schedules.containsKey(schedule.date))
+                  ...schedules[schedule.date]!,
+                schedule,
+              ]
+            };
+          });
+
         },
         backgroundColor: primaryColor,
         child: Icon(
@@ -105,8 +121,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         startTime: scheduleModel.startTime,
                         endTime: scheduleModel.endTime);
                   },
-                  separatorBuilder: (BuildContext contex, int index){
-                    return SizedBox(height: 16.0,);
+                  separatorBuilder: (BuildContext contex, int index) {
+                    return SizedBox(
+                      height: 16.0,
+                    );
                   },
                 ),
               ),

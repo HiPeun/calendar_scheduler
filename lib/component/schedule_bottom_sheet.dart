@@ -1,10 +1,13 @@
+import 'package:calendar_scheduler/model/schedule.dart';
 import 'package:flutter/material.dart';
 
 import '../const/color.dart';
 import 'custom_text_field.dart';
 
 class ScheduleBottomSheet extends StatefulWidget {
-  const ScheduleBottomSheet({super.key});
+  final DateTime selectedDay;
+
+  const ScheduleBottomSheet({required this.selectedDay, super.key});
 
   @override
   State<ScheduleBottomSheet> createState() => _ScheduleBottomSheetState();
@@ -15,7 +18,6 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
   int? startTime;
   int? endTime;
   String? content;
-  String? category;
 
   //selectedColor 내가 선택한 컬러는 카테고리 컬러에서 첫번째 컬러(레드)에서 선택한다
   //그걸 String 값으로 전달하도록 한다.
@@ -37,10 +39,10 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
               child: Column(
                 children: [
                   _Time(
+                    onStartSaved: onStartTimeSaved,
+                    onStartValidate: onStartTimeValidate,
                     onEndSaved: onEndTimeSaved,
                     onEndValidate: onEndTimeValidate,
-                    onStartSaved: onStartTimeSaved,
-                    onStartValiated: onStartTimeValidate,
                   ),
                   SizedBox(height: 8.0),
                   _Content(
@@ -72,11 +74,22 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
     if (val == null) {
       return;
     }
-
     startTime = int.parse(val);
   }
 
-  String? onStartTimeValidate(String? val) {}
+  String? onStartTimeValidate(String? val) {
+    if (val == null) {
+      return "값을 입력해 주세요";
+    }
+    if (int.tryParse(val) == null) {
+      return "숫자를 입력해주세요";
+    }
+    final time = int.parse(val);
+    if (time > 24 || time < 0) {
+      return "0과 24 사이의 숫자를 입력해 주세요";
+    }
+    return null;
+  }
 
   void onEndTimeSaved(String? val) {
     if (val == null) {
@@ -85,7 +98,19 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
     endTime = int.parse(val);
   }
 
-  String? onEndTimeValidate(String? val) {}
+  String? onEndTimeValidate(String? val) {
+    if (val == null) {
+      return "값을 입력해 주세요";
+    }
+    if (int.tryParse(val) == null) {
+      return "숫자를 입력해주세요";
+    }
+    final time = int.parse(val);
+    if (time > 25 || time < 0) {
+      return "0과 24 사이의 숫자를 입력해 주세요";
+    }
+    return null;
+  }
 
   void onContentSaved(String? val) {
     if (val == null) {
@@ -94,16 +119,35 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
     content = val;
   }
 
-  String? onContentValidate(String? val) {}
+  String? onContentValidate(String? val) {
+    if (val == null) {
+      return "내용을 입력해 주세요";
+    }
+    if (val.length < 5) {
+      return "5자 이상을 입력해 주세요";
+    }
+    return null;
+  }
 
   void onSavePressed() {
+    final isValid = formKey.currentState!.validate();
+
+    if (isValid) {
       formKey.currentState!.save();
-      
-      print("-=-----");
-      print(startTime);
-      print(endTime);
-      print(content);
-      print(category);
+
+      final schedule = Schedule(
+        id: 999,
+        startTime: startTime!,
+        endTime: endTime!,
+        content: content!,
+        color: selectedColor,
+        date: widget.selectedDay,
+        createdAt: DateTime.now().toUtc(),
+      );
+      Navigator.of(context).pop(
+        schedule,
+      );
+    }
   }
 }
 
@@ -112,36 +156,28 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
 class _Time extends StatelessWidget {
   final FormFieldSetter<String> onStartSaved;
   final FormFieldSetter<String> onEndSaved;
-  final FormFieldValidator<String> onStartValiated;
+  final FormFieldValidator<String> onStartValidate;
   final FormFieldValidator<String> onEndValidate;
 
-  final GlobalKey<FormState> formKey = GlobalKey();
-
-  _Time(
+  const _Time(
       {required this.onEndSaved,
       required this.onEndValidate,
       required this.onStartSaved,
-      required this.onStartValiated,
+      required this.onStartValidate,
       super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: CustomTextField(
-                label: " 시작 시간 ",
-                onSaved: onStartSaved,
-                validator: onStartValiated,
-              ),
-            )
-          ],
+        Expanded(
+          child: CustomTextField(
+            label: " 시작 시간 ",
+            onSaved: onStartSaved,
+            validator: onStartValidate,
+          ),
         ),
-        SizedBox(
-          width: 16.0,
-        ),
+        SizedBox(width: 16.0),
         Expanded(
           child: CustomTextField(
             label: "마감 시간 ",
