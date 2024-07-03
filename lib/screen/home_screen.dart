@@ -106,6 +106,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
 
                       final schedules = snapshot.data!;
+
+
                       return ListView.separated(
                         itemCount: schedules.length,
                         itemBuilder: (BuildContext context, int index) {

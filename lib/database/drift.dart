@@ -22,9 +22,25 @@ class AppDatabase extends _$AppDatabase {
       (select(scheduleTable)..where((table) => table.date.equals(date))).get();
 
   Stream<List<ScheduleTableData>> streamSchedules(
-      DateTime date,
-      )=>
-      (select(scheduleTable)..where((table) => table.date.equals(date))).watch();
+    DateTime date,
+  ) =>
+      (select(scheduleTable)
+            ..where(
+              (table) => table.date.equals(date),
+            )
+            ..orderBy(
+              [
+                (table) => OrderingTerm(
+                      expression: table.startTime,
+                      mode: OrderingMode.asc,
+                    ),
+                (table) => OrderingTerm(
+                      expression: table.endTime,
+                      mode: OrderingMode.asc,
+                    ),
+              ],
+            ))
+          .watch();
 
   Future<int> createSchedule(ScheduleTableCompanion data) =>
       into(scheduleTable).insert(data);
