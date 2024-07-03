@@ -109,24 +109,29 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
 
                       final schedules = snapshot.data!;
-
-
                       return ListView.separated(
                         itemCount: schedules.length,
                         itemBuilder: (BuildContext context, int index) {
                           ///선택된 날짜에 해당되는 일정 리스트로 저장
                           ///List<Schedule>
                           final schedule = schedules[index];
-                          return ScheduleCard(
-                              color: Color(
-                                int.parse(
-                                  "FF${schedule.color}",
-                                  radix: 16,
+                          return Dismissible(
+                            key: ObjectKey(schedule.id),
+                            direction: DismissDirection.endToStart,
+                            onDismissed: (DismissDirection direction){
+
+                            },
+                            child: ScheduleCard(
+                                color: Color(
+                                  int.parse(
+                                    "FF${schedule.color}",
+                                    radix: 16,
+                                  ),
                                 ),
-                              ),
-                              content: schedule.content,
-                              startTime: schedule.startTime,
-                              endTime: schedule.endTime);
+                                content: schedule.content,
+                                startTime: schedule.startTime,
+                                endTime: schedule.endTime),
+                          );
                         },
                         separatorBuilder: (BuildContext contex, int index) {
                           return SizedBox(
