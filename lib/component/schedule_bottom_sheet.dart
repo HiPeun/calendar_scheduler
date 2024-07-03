@@ -54,7 +54,7 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
           builder: (context, snapshot) {
             if (widget.id != null &&
                 snapshot.connectionState == ConnectionState.waiting &&
-               ! snapshot.hasData) {
+                !snapshot.hasData) {
               return Center(
                 child: CircularProgressIndicator(),
               );
@@ -173,13 +173,26 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
 
       final database = GetIt.I<AppDatabase>();
 
-      await database.createSchedule(ScheduleTableCompanion(
-        startTime: Value(startTime!),
-        endTime: Value(endTime!),
-        content: Value(content!),
-        color: Value(selectedColor),
-        date: Value(widget.selectedDay),
-      ));
+      if (widget.id == null) {
+        await database.createSchedule(ScheduleTableCompanion(
+          startTime: Value(startTime!),
+          endTime: Value(endTime!),
+          content: Value(content!),
+          color: Value(selectedColor),
+          date: Value(widget.selectedDay),
+        ));
+      } else {
+        await database.updateScheduleById(
+          widget.id!,
+          ScheduleTableCompanion(
+            startTime: Value(startTime!),
+            endTime: Value(endTime!),
+            content: Value(content!),
+            color: Value(selectedColor),
+            date: Value(widget.selectedDay),
+          ),
+        );
+      }
 
       Navigator.of(context).pop();
     }
