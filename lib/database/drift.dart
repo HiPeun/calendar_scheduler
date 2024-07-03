@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:js_interop';
+
 
 import 'package:calendar_scheduler/model/category.dart';
 import 'package:calendar_scheduler/model/schedule_with_category.dart';

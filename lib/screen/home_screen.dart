@@ -70,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         backgroundColor: primaryColor,
         child: Icon(
-          Icons.add,
+          Icons.add_alarm_outlined,
           color: Colors.white,
         ),
       ),
@@ -78,13 +78,20 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             Calendar(
-              focusedDay: DateTime(2024, 3, 1),
+              focusedDay: selectedDay,
               onDaySelected: onDaySelected,
               selectedDayPredicate: selectedDayPredicate,
             ),
-            TodayBanner(
-              taskCount: 0,
-              selectedDay: selectedDay,
+            StreamBuilder(
+              stream: GetIt.I<AppDatabase>().streamSchedules(
+                selectedDay,
+              ),
+              builder: (context,snapshot) {
+                return TodayBanner(
+                  taskCount: !snapshot.hasData ? 0 : snapshot.data!.length,
+                  selectedDay: selectedDay,
+                );
+              }
             ),
             Expanded(
               child: Padding(
@@ -178,6 +185,6 @@ class _HomeScreenState extends State<HomeScreen> {
     if (selectedDay == null) {
       return false;
     }
-    return date.isAtSameMomentAs(selectedDay!);
+    return date.isAtSameMomentAs(selectedDay);
   }
 }
