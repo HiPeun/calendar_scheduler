@@ -26,7 +26,7 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
   //selectedColor 내가 선택한 컬러는 카테고리 컬러에서 첫번째 컬러(레드)에서 선택한다
   //그걸 String 값으로 전달하도록 한다.
 
-  String selectedColor = categoryColors.first;
+   int? selectedColorId;
 
   @override
   void initState() {
@@ -38,13 +38,22 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
     if (widget.id != null) {
       final resp = await GetIt.I<AppDatabase>().getScheduleById(widget.id!);
       setState(() {
-        selectedColor = resp.category.color;
+        selectedColorId = resp.category.id;
+      });
+    }else{
+      final resp = await GetIt.I<AppDatabase>().getCategories();
+
+      setState(() {
+        selectedColorId = resp.first.id;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if(selectedColorId == null){
+      return Container();
+    }
     return SafeArea(
       child: FutureBuilder(
           future: widget.id == null
@@ -88,10 +97,10 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
                         ),
                         SizedBox(height: 8.0),
                         _Categories(
-                            selectedColor: selectedColor,
-                            onTap: (String color) {
+                            selectedColor: selectedColorId!,
+                            onTap: (int color) {
                               setState(() {
-                                selectedColor = color;
+                                selectedColorId = color;
                               });
                             }),
                         SizedBox(height: 8.0),
@@ -180,7 +189,7 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
           startTime: Value(startTime!),
           endTime: Value(endTime!),
           content: Value(content!),
-          colo: Value(selectedColor),
+          colorId: Value(selectedColorId!),
           date: Value(widget.selectedDay),
         ));
       } else {
@@ -190,7 +199,7 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
             startTime: Value(startTime!),
             endTime: Value(endTime!),
             content: Value(content!),
-            color: Value(selectedColor),
+            colorId: Value(selectedColorId!),
             date: Value(widget.selectedDay),
           ),
         );
@@ -272,50 +281,60 @@ class _Content extends StatelessWidget {
   }
 }
 
-typedef OnCollorSelected = void Function(String color);
+typedef OnColorSelected = void Function(int color);
 
 //카테고리 클래스
 class _Categories extends StatelessWidget {
-  final String selectedColor;
-  final OnCollorSelected onTap;
+  final int selectedColor;
+  final OnColorSelected onTap;
 
   const _Categories(
       {required this.onTap, required this.selectedColor, super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: categoryColors
-          .map(
-            (e) => Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: GestureDetector(
-                onTap: () {
-                  onTap(e);
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Color(
-                      int.parse(
-                        "FF$e",
-                        radix: 16,
+    return FutureBuilder(
+      future: GetIt.I<AppDatabase>().getCategories(),
+      builder: (context,snapshot) {
+        if(snapshot.hasData){
+          return Container(
+
+          );
+        }
+        return Row(
+          children: snapshot.data!
+              .map(
+                (e) => Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      onTap(e.id);
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Color(
+                          int.parse(
+                            "FF${e.color}",
+                            radix: 16,
+                          ),
+                        ),
+                        border: e.id == selectedColor
+                            ? Border.all(
+                                color: Colors.black,
+                                width: 4.0,
+                              )
+                            : null,
+                        shape: BoxShape.circle,
                       ),
+                      width: 32.0,
+                      height: 32.0,
                     ),
-                    border: e == selectedColor
-                        ? Border.all(
-                            color: Colors.black,
-                            width: 4.0,
-                          )
-                        : null,
-                    shape: BoxShape.circle,
                   ),
-                  width: 32.0,
-                  height: 32.0,
                 ),
-              ),
-            ),
-          )
-          .toList(),
+              )
+              .toList(),
+        );
+      }
     );
   }
 }
