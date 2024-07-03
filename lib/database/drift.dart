@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:js_interop';
 
 import 'package:calendar_scheduler/model/category.dart';
+import 'package:calendar_scheduler/model/schedule_with_category.dart';
 import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 
@@ -20,48 +22,81 @@ part 'drift.g.dart';
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
-  Future<ScheduleTableData> getScheduleById(int id) =>
-      (select(scheduleTable)..where((table) => table.id.equals(id)))
-          .getSingle();
+  Future<ScheduleWithCategory> getScheduleById(int id)
+      {
+        final query = select(scheduleTable).join(
+            [
+              innerJoin(
+                categoryTable, categoryTable.id.equalsExp(scheduleTable.colorId,),),
+            ]
+        )..where(scheduleTable.id.equals(id));
+
+
+
+        return query.map((row){
+          final schedule = row.readTable(scheduleTable);
+          final category = row.readTable(categoryTable);
+
+          return ScheduleWithCategory(schedule: schedule, category: category);
+
+        }).getSingle();
+      }
 
   Future<int> updateScheduleById(int id, ScheduleTableCompanion data) =>
-      (update(scheduleTable)..where((table) => table.id.equals(id)))
+      (update(scheduleTable)
+        ..where((table) => table.id.equals(id)))
           .write(data);
 
-  Future<List<ScheduleTableData>> getSchedules(
-    DateTime date,
-  ) =>
-      (select(scheduleTable)..where((table) => table.date.equals(date))).get();
-
-  Stream<List<ScheduleTableData>> streamSchedules(
-    DateTime date,
-  ) =>
+  Future<List<ScheduleTableData>> getSchedules(DateTime date,) =>
       (select(scheduleTable)
-            ..where(
-              (table) => table.date.equals(date),
-            )
-            ..orderBy(
-              [
-                (table) => OrderingTerm(
-                      expression: table.startTime,
-                      mode: OrderingMode.asc,
-                    ),
-                (table) => OrderingTerm(
-                      expression: table.endTime,
-                      mode: OrderingMode.asc,
-                    ),
-              ],
-            ))
-          .watch();
+        ..where((table) => table.date.equals(date))).get();
+
+  Stream<List<ScheduleWithCategory>> streamSchedules(DateTime date,) {
+    final query = select(scheduleTable).join(
+        [
+          innerJoin(
+            categoryTable, categoryTable.id.equalsExp(scheduleTable.colorId,),),
+        ]
+    )..where(scheduleTable.date.equals(date));
+
+
+
+    return query.map((row){
+      final schedule = row.readTable(scheduleTable);
+      final category = row.readTable(categoryTable);
+
+      return ScheduleWithCategory(schedule: schedule, category: category);
+
+    }).watch();
+    // (select(scheduleTable)
+    //   ..where(
+    //         (table) => table.date.equals(date),
+    //   )
+    //   ..orderBy(
+    //     [
+    //           (table) => OrderingTerm(
+    //         expression: table.startTime,
+    //         mode: OrderingMode.asc,
+    //       ),
+    //           (table) => OrderingTerm(
+    //         expression: table.endTime,
+    //         mode: OrderingMode.asc,
+    //       ),
+    //     ],
+    //   ))
+    //     .watch();
+  }
+
 
   Future<int> createSchedule(ScheduleTableCompanion data) =>
       into(scheduleTable).insert(data);
 
-  Future<int> removeSchedule(int id) => (delete(scheduleTable)
+  Future<int> removeSchedule(int id) =>
+      (delete(scheduleTable)
         ..where(
-          (table) => table.id.equals(id),
+              (table) => table.id.equals(id),
         ))
-      .go();
+          .go();
 
   @override
   int get schemaVersion => 1;
@@ -69,7 +104,7 @@ class AppDatabase extends _$AppDatabase {
 
 LazyDatabase _openConnection() {
   return LazyDatabase(
-    () async {
+        () async {
       final dbFolder = await getApplicationDocumentsDirectory();
       final file = File(p.join(dbFolder.path, "db.splite"));
 

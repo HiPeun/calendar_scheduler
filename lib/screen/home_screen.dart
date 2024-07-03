@@ -1,14 +1,15 @@
 import 'package:calendar_scheduler/component/calendar.dart';
-import 'package:calendar_scheduler/component/custom_text_field.dart';
+
 import 'package:calendar_scheduler/component/schedule_bottom_sheet.dart';
 import 'package:calendar_scheduler/component/today_banner.dart';
 import 'package:calendar_scheduler/const/color.dart';
 import 'package:calendar_scheduler/database/drift.dart';
+import 'package:calendar_scheduler/model/schedule_with_category.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
-import 'package:table_calendar/table_calendar.dart';
+
 
 import '../component/schedule_card.dart';
 import '../model/schedule.dart';
@@ -89,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Padding(
                 padding:
                     const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0),
-                child: StreamBuilder<List<ScheduleTableData>>(
+                child: StreamBuilder<List<ScheduleWithCategory>>(
                     stream: GetIt.I<AppDatabase>().streamSchedules(
                       selectedDay,
                     ),
@@ -113,7 +114,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemBuilder: (BuildContext context, int index) {
                           ///선택된 날짜에 해당되는 일정 리스트로 저장
                           ///List<Schedule>
-                          final schedule = schedules[index];
+                          ///
+                          ///
+                          final scheduleWithCategory = schedules[index];
+                          final schedule = scheduleWithCategory.schedule;
+                          final category = scheduleWithCategory.category;
+
                           return Dismissible(
                             key: ObjectKey(schedule.id),
                             direction: DismissDirection.endToStart,
@@ -137,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: ScheduleCard(
                                   color: Color(
                                     int.parse(
-                                      "FF${schedule.color}",
+                                      "FF${category.color}",
                                       radix: 16,
                                     ),
                                   ),

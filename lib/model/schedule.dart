@@ -1,3 +1,4 @@
+
 import 'package:calendar_scheduler/model/category.dart';
 import 'package:drift/drift.dart';
 

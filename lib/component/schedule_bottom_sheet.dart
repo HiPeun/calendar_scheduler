@@ -38,7 +38,7 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
     if (widget.id != null) {
       final resp = await GetIt.I<AppDatabase>().getScheduleById(widget.id!);
       setState(() {
-        selectedColor = resp.color;
+        selectedColor = resp.category.color;
       });
     }
   }
@@ -46,7 +46,6 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      bottom: true,
       child: FutureBuilder(
           future: widget.id == null
               ? null
@@ -59,7 +58,10 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
                 child: CircularProgressIndicator(),
               );
             }
-            final data = snapshot.data;
+            final data = snapshot.data?.schedule;
+
+
+
             return Container(
               color: Colors.white,
               height: 1000,
@@ -178,7 +180,7 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
           startTime: Value(startTime!),
           endTime: Value(endTime!),
           content: Value(content!),
-          color: Value(selectedColor),
+          colo: Value(selectedColor),
           date: Value(widget.selectedDay),
         ));
       } else {
