@@ -57,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final schedule = await showModalBottomSheet<ScheduleTable>(
+          await showModalBottomSheet<ScheduleTable>(
             context: context,
             builder: (_) {
               return ScheduleBottomSheet(
@@ -66,22 +66,8 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           );
 
-          setState(() {
+          setState(() {});
 
-          });
-          //
-          // setState(
-          //   () {
-          //     schedules = {
-          //       ...schedules,
-          //       schedule.date: [
-          //         if (schedules.containsKey(schedule.date))
-          //           ...schedules[schedule.date]!,
-          //         schedule,
-          //       ]
-          //     };
-          //   },
-          // );
         },
         backgroundColor: primaryColor,
         child: Icon(
@@ -106,7 +92,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding:
                     const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0),
                 child: FutureBuilder<List<ScheduleTableData>>(
-                    future: GetIt.I<AppDatabase>().getSchedules(),
+                    future: GetIt.I<AppDatabase>().getSchedules(
+                      selectedDay
+                    ),
                     builder: (context, snapshot) {
                       if (snapshot.hasError) {
                         return Center(
@@ -122,15 +110,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       final schedules = snapshot.data!;
 
-                      final selectedSchedules = schedules
-                          .where((e) => e.date.isAtSameMomentAs(selectedDay))
-                          .toList();
+
                       return ListView.separated(
-                        itemCount: selectedSchedules.length,
+                        itemCount: schedules.length,
                         itemBuilder: (BuildContext context, int index) {
                           ///선택된 날짜에 해당되는 일정 리스트로 저장
                           ///List<Schedule>
-                          final schedule = selectedSchedules[index];
+                          final schedule = schedules[index];
                           return ScheduleCard(
                               color: Color(
                                 int.parse(
