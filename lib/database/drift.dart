@@ -21,6 +21,9 @@ part 'drift.g.dart';
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+  Future<List<ScheduleTableData>> getSchedules() => select(scheduleTable).get();
+
+  Future<int> createSchedule(ScheduleTableCompanion data) => into(scheduleTable).insert(data);
 
   @override
   int get schemaVersion => 1;
