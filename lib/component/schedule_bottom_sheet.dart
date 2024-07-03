@@ -1,7 +1,10 @@
 import 'package:calendar_scheduler/model/schedule.dart';
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 
 import '../const/color.dart';
+import '../database/drift.dart' ;
 import 'custom_text_field.dart';
 
 class ScheduleBottomSheet extends StatefulWidget {
@@ -129,24 +132,24 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
     return null;
   }
 
-  void onSavePressed() {
+  void onSavePressed()async{
     final isValid = formKey.currentState!.validate();
 
     if (isValid) {
       formKey.currentState!.save();
 
-      // final schedule = ScheduleTable(
-      //   id: 999,
-      //   startTime: startTime!,
-      //   endTime: endTime!,
-      //   content: content!,
-      //   color: selectedColor,
-      //   date: widget.selectedDay,
-      //   createdAt: DateTime.now().toUtc(),
-      // );
-      // Navigator.of(context).pop(
-      //   schedule,
-      // );
+      final database = GetIt.I<AppDatabase>();
+
+      await database.createSchedule(ScheduleTableCompanion(
+        startTime: Value(startTime!),
+        endTime: Value(endTime!),
+        content: Value(content!),
+        color: Value(selectedColor),
+        date: Value(widget.selectedDay),
+
+      ));
+
+      Navigator.of(context).pop();
     }
   }
 }
@@ -159,12 +162,11 @@ class _Time extends StatelessWidget {
   final FormFieldValidator<String> onStartValidate;
   final FormFieldValidator<String> onEndValidate;
 
-  const _Time(
-      {required this.onEndSaved,
-      required this.onEndValidate,
-      required this.onStartSaved,
-      required this.onStartValidate,
-      super.key});
+  const _Time({required this.onEndSaved,
+    required this.onEndValidate,
+    required this.onStartSaved,
+    required this.onStartValidate,
+    super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -225,7 +227,8 @@ class _Categories extends StatelessWidget {
     return Row(
       children: categoryColors
           .map(
-            (e) => Padding(
+            (e) =>
+            Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: GestureDetector(
                 onTap: () {
@@ -241,9 +244,9 @@ class _Categories extends StatelessWidget {
                     ),
                     border: e == selectedColor
                         ? Border.all(
-                            color: Colors.black,
-                            width: 4.0,
-                          )
+                      color: Colors.black,
+                      width: 4.0,
+                    )
                         : null,
                     shape: BoxShape.circle,
                   ),
@@ -252,7 +255,7 @@ class _Categories extends StatelessWidget {
                 ),
               ),
             ),
-          )
+      )
           .toList(),
     );
   }
