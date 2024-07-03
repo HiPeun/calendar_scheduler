@@ -66,8 +66,6 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           );
 
-          setState(() {});
-
         },
         backgroundColor: primaryColor,
         child: Icon(
@@ -91,9 +89,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Padding(
                 padding:
                     const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0),
-                child: FutureBuilder<List<ScheduleTableData>>(
-                    future: GetIt.I<AppDatabase>().getSchedules(
-                      selectedDay
+                child: StreamBuilder<List<ScheduleTableData>>(
+                    stream: GetIt.I<AppDatabase>().streamSchedules(
+                      selectedDay,
                     ),
                     builder: (context, snapshot) {
                       if (snapshot.hasError) {
@@ -101,8 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text(snapshot.error.toString()),
                         );
                       }
-                      if (!snapshot.hasData &&
-                          snapshot.connectionState == ConnectionState.waiting) {
+                      if (snapshot.data == null) {
                         return Center(
                           child: CircularProgressIndicator(),
                         );
@@ -118,12 +115,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           return Dismissible(
                             key: ObjectKey(schedule.id),
                             direction: DismissDirection.endToStart,
-                            confirmDismiss: (DismissDirection direction)async {
+                            // confirmDismiss: (DismissDirection direction) async {
+                            //   GetIt.I<AppDatabase>()
+                            //       .removeSchedule(schedule.id);
+                            //
+                            //   return true;
+                            // },
+                            onDismissed: (DismissDirection direction){
                               GetIt.I<AppDatabase>().removeSchedule(schedule.id);
-                              setState(() {
-
-                              });
-                              return true;
                             },
                             child: ScheduleCard(
                                 color: Color(
