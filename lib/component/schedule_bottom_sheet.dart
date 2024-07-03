@@ -4,13 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 
 import '../const/color.dart';
-import '../database/drift.dart' ;
+import '../database/drift.dart';
 import 'custom_text_field.dart';
 
 class ScheduleBottomSheet extends StatefulWidget {
+  final int? id;
   final DateTime selectedDay;
 
-  const ScheduleBottomSheet({required this.selectedDay, super.key});
+  const ScheduleBottomSheet({this.id, required this.selectedDay, super.key});
 
   @override
   State<ScheduleBottomSheet> createState() => _ScheduleBottomSheetState();
@@ -28,48 +29,80 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
   String selectedColor = categoryColors.first;
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+  initCategory() async {
+    if (widget.id != null) {
+      final resp = await GetIt.I<AppDatabase>().getScheduleById(widget.id!);
+      setState(() {
+        selectedColor = resp.color;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       bottom: true,
-      child: Container(
-        color: Colors.white,
-        height: 1000,
-        child: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.only(left: 8.0, right: 8.0, top: 16.0),
-            child: Form(
-              key: formKey,
-              child: Column(
-                children: [
-                  _Time(
-                    onStartSaved: onStartTimeSaved,
-                    onStartValidate: onStartTimeValidate,
-                    onEndSaved: onEndTimeSaved,
-                    onEndValidate: onEndTimeValidate,
+      child: FutureBuilder(
+          future: widget.id == null
+              ? null
+              : GetIt.I<AppDatabase>().getScheduleById(widget.id!),
+          builder: (context, snapshot) {
+            if (widget.id != null &&
+                snapshot.connectionState == ConnectionState.waiting &&
+               ! snapshot.hasData) {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+            final data = snapshot.data;
+            return Container(
+              color: Colors.white,
+              height: 1000,
+              child: SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.only(left: 8.0, right: 8.0, top: 16.0),
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      children: [
+                        _Time(
+                          onStartSaved: onStartTimeSaved,
+                          onStartValidate: onStartTimeValidate,
+                          onEndSaved: onEndTimeSaved,
+                          onEndValidate: onEndTimeValidate,
+                          startTimeInitValue: data?.startTime.toString(),
+                          endTimeInitValue: data?.endTime.toString(),
+                        ),
+                        SizedBox(height: 8.0),
+                        _Content(
+                          onSaved: onContentSaved,
+                          onValidate: onContentValidate,
+                          initialValue: data?.content,
+                        ),
+                        SizedBox(height: 8.0),
+                        _Categories(
+                            selectedColor: selectedColor,
+                            onTap: (String color) {
+                              setState(() {
+                                selectedColor = color;
+                              });
+                            }),
+                        SizedBox(height: 8.0),
+                        _SaveButton(
+                          onPressed: onSavePressed,
+                        )
+                      ],
+                    ),
                   ),
-                  SizedBox(height: 8.0),
-                  _Content(
-                    onSaved: onContentSaved,
-                    onValidate: onContentValidate,
-                  ),
-                  SizedBox(height: 8.0),
-                  _Categories(
-                      selectedColor: selectedColor,
-                      onTap: (String color) {
-                        setState(() {
-                          selectedColor = color;
-                        });
-                      }),
-                  SizedBox(height: 8.0),
-                  _SaveButton(
-                    onPressed: onSavePressed,
-                  )
-                ],
+                ),
               ),
-            ),
-          ),
-        ),
-      ),
+            );
+          }),
     );
   }
 
@@ -132,7 +165,7 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
     return null;
   }
 
-  void onSavePressed()async{
+  void onSavePressed() async {
     final isValid = formKey.currentState!.validate();
 
     if (isValid) {
@@ -146,7 +179,6 @@ class _ScheduleBottomSheetState extends State<ScheduleBottomSheet> {
         content: Value(content!),
         color: Value(selectedColor),
         date: Value(widget.selectedDay),
-
       ));
 
       Navigator.of(context).pop();
@@ -161,12 +193,17 @@ class _Time extends StatelessWidget {
   final FormFieldSetter<String> onEndSaved;
   final FormFieldValidator<String> onStartValidate;
   final FormFieldValidator<String> onEndValidate;
+  final String? startTimeInitValue;
+  final String? endTimeInitValue;
 
-  const _Time({required this.onEndSaved,
-    required this.onEndValidate,
-    required this.onStartSaved,
-    required this.onStartValidate,
-    super.key});
+  const _Time(
+      {required this.onEndSaved,
+      required this.onEndValidate,
+      required this.onStartSaved,
+      required this.onStartValidate,
+      this.endTimeInitValue,
+      this.startTimeInitValue,
+      super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -177,6 +214,7 @@ class _Time extends StatelessWidget {
             label: " 시작 시간 ",
             onSaved: onStartSaved,
             validator: onStartValidate,
+            initialValue: startTimeInitValue,
           ),
         ),
         SizedBox(width: 16.0),
@@ -185,6 +223,7 @@ class _Time extends StatelessWidget {
             label: "마감 시간 ",
             onSaved: onEndSaved,
             validator: onEndValidate,
+            initialValue: endTimeInitValue,
           ),
         ),
       ],
@@ -196,8 +235,13 @@ class _Time extends StatelessWidget {
 class _Content extends StatelessWidget {
   final FormFieldSetter<String> onSaved;
   final FormFieldValidator<String> onValidate;
+  final String? initialValue;
 
-  const _Content({required this.onSaved, required this.onValidate, super.key});
+  const _Content(
+      {this.initialValue,
+      required this.onSaved,
+      required this.onValidate,
+      super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -207,6 +251,7 @@ class _Content extends StatelessWidget {
         expand: true,
         onSaved: onSaved,
         validator: onValidate,
+        initialValue: initialValue,
       ),
     );
   }
@@ -227,8 +272,7 @@ class _Categories extends StatelessWidget {
     return Row(
       children: categoryColors
           .map(
-            (e) =>
-            Padding(
+            (e) => Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: GestureDetector(
                 onTap: () {
@@ -244,9 +288,9 @@ class _Categories extends StatelessWidget {
                     ),
                     border: e == selectedColor
                         ? Border.all(
-                      color: Colors.black,
-                      width: 4.0,
-                    )
+                            color: Colors.black,
+                            width: 4.0,
+                          )
                         : null,
                     shape: BoxShape.circle,
                   ),
@@ -255,7 +299,7 @@ class _Categories extends StatelessWidget {
                 ),
               ),
             ),
-      )
+          )
           .toList(),
     );
   }

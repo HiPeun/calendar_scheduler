@@ -126,16 +126,25 @@ class _HomeScreenState extends State<HomeScreen> {
                             onDismissed: (DismissDirection direction){
                               GetIt.I<AppDatabase>().removeSchedule(schedule.id);
                             },
-                            child: ScheduleCard(
-                                color: Color(
-                                  int.parse(
-                                    "FF${schedule.color}",
-                                    radix: 16,
+                            child: GestureDetector(
+                              onTap: ()async{
+                                await showModalBottomSheet<ScheduleTable>(context: context, builder: (_){
+                                  return ScheduleBottomSheet(selectedDay: selectedDay,
+                                  id: schedule.id,);
+                                });
+
+                              },
+                              child: ScheduleCard(
+                                  color: Color(
+                                    int.parse(
+                                      "FF${schedule.color}",
+                                      radix: 16,
+                                    ),
                                   ),
-                                ),
-                                content: schedule.content,
-                                startTime: schedule.startTime,
-                                endTime: schedule.endTime),
+                                  content: schedule.content,
+                                  startTime: schedule.startTime,
+                                  endTime: schedule.endTime),
+                            ),
                           );
                         },
                         separatorBuilder: (BuildContext contex, int index) {

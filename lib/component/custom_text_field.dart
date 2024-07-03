@@ -6,9 +6,10 @@ class CustomTextField extends StatelessWidget {
   final bool expand;
   final FormFieldSetter<String> onSaved;
   final FormFieldValidator<String> validator;
+  final String? initialValue;
 
   const CustomTextField(
-      {required this.validator,required this.onSaved, this.expand = false, required this.label, super.key});
+      {this.initialValue,required this.validator,required this.onSaved, this.expand = false, required this.label, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -40,12 +41,11 @@ class CustomTextField extends StatelessWidget {
       onSaved: onSaved,
       //검증 할때 로직
       validator: validator,
-
-      //최대 줄의 갯수
       maxLines: expand ? null : 1,
       minLines: expand ? null : 1,
       expands: expand,
       cursorColor: Colors.grey,
+      initialValue: initialValue,
     );
   }
 }
