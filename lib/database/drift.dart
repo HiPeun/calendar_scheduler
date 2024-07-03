@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:calendar_scheduler/model/category.dart';
 import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 
@@ -12,16 +13,20 @@ import 'package:sqlite3/sqlite3.dart';
 //함께 한 파일에 있는 것처럼 인식해라 임포트를 하지 않아도 다 사용할 수 잇는 part
 part 'drift.g.dart';
 
-@DriftDatabase(tables: [ScheduleTable])
+@DriftDatabase(tables: [
+  ScheduleTable,
+  CategoryTable,
+])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
+  Future<ScheduleTableData> getScheduleById(int id) =>
+      (select(scheduleTable)..where((table) => table.id.equals(id)))
+          .getSingle();
 
-  Future<ScheduleTableData> getScheduleById(int id)=>
-      (select(scheduleTable)..where((table)=> table.id.equals(id))).getSingle();
-
-  Future<int> updateScheduleById(int id, ScheduleTableCompanion data)
-  => (update(scheduleTable)..where((table)=> table.id.equals(id))).write(data);
+  Future<int> updateScheduleById(int id, ScheduleTableCompanion data) =>
+      (update(scheduleTable)..where((table) => table.id.equals(id)))
+          .write(data);
 
   Future<List<ScheduleTableData>> getSchedules(
     DateTime date,
